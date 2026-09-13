@@ -28,6 +28,8 @@ Unknown license → do not copy source into the distributable build; reimplement
 - Keep execution roots explicit.
 - Show the command and working directory before privileged or destructive operations.
 - Treat project files as untrusted input.
+- A command allowlist, timeout, and output cap are not a substitute for OS/container isolation and CPU/memory quotas.
+- Interactive shells remain blocked until the execution provider can satisfy the same isolation baseline.
 
 ### AI
 
@@ -35,6 +37,7 @@ Unknown license → do not copy source into the distributable build; reimplement
 - Default to previewing changes as a diff.
 - Restrict file access to the active workspace unless the user explicitly expands scope.
 - Never store provider API keys in project files, source control, logs, or crash reports.
+- Every mutation must emit an audit event with actor, action, target, timestamp, result, and consent/reference.
 
 ### Web preview / DevTools
 
@@ -42,6 +45,7 @@ Unknown license → do not copy source into the distributable build; reimplement
 - Keep bridge APIs minimal and capability-based.
 - Do not expose arbitrary native methods to page JavaScript.
 - Separate preview debugging from privileged application APIs.
+- Prefer a separate WebView/process boundary for untrusted preview content when the platform permits it.
 
 ### Remote files
 
@@ -52,6 +56,18 @@ Unknown license → do not copy source into the distributable build; reimplement
 ### Telemetry
 
 Wakatime-style telemetry is optional and disabled by default until the data flow, consent, and storage policy are implemented.
+
+## Current hardening state
+
+The current foundation has these additional controls:
+
+- Android application backup is disabled for the foundation build.
+- Android cleartext traffic is disabled at the application level.
+- Workspace URI authorization rejects encoded separators, traversal segments, query/fragment mutation, authority mismatch, and non-document child path shapes before filesystem operations.
+- Native HTTP requires HTTPS and bounded request/response sizes; redirects are not automatically followed.
+- CI performs an npm vulnerability audit instead of explicitly disabling the audit step.
+
+These controls reduce risk but do not close the complete security gate. Terminal execution remains `BLOCKED` until OS/container isolation and CPU/memory resource quotas exist, and the WebView/native bridge remains `BLOCKED` until the privileged bridge is reduced to a capability-scoped protocol with a verified untrusted-preview boundary.
 
 ## Known issues observed in the uploaded Acode runtime log
 
