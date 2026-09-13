@@ -7,7 +7,6 @@ const test = base.extend({
         openTextFile: () => {},
         openWorkspace: () => {},
         saveTextFile: () => {},
-        runTerminal: () => {},
         httpRequest: () => {},
       };
     });

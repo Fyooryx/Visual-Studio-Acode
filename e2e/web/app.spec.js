@@ -77,7 +77,7 @@ test('E2E-13 diagnostics appear in Problems panel', async ({ page }) => {
   await page.locator('#editor').fill('function broken( {\n  return 1;\n');
   await page.getByRole('button', { name: 'More' }).click();
   await page.getByRole('button', { name: 'Problems' }).click();
-  await expect(page.locator('#preview-body')).toContainText('Unmatched');
+  await expect(page.locator('#preview-body')).toContainText('Unclosed');
   await expect(page.locator('#diagnostics-count')).not.toHaveText('0 problems');
 });
 
@@ -91,6 +91,11 @@ test('E2E-14 empty diagnostics state is explicit', async ({ page }) => {
 
 test('E2E-15 local editor state survives reload', async ({ page }) => {
   await page.locator('#editor').fill('persist me');
+  await expect(page.evaluate(() => {
+    const state = JSON.parse(localStorage.getItem('vsac.workspace.v3') || '{}');
+    const file = (state.files || []).find((entry) => entry.id === 'main.js');
+    return file?.content;
+  })).resolves.toBe('persist me');
   await page.reload();
   await expect(page.locator('#editor')).toHaveValue('persist me');
 });

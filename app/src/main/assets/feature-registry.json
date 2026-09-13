@@ -1,6 +1,27 @@
 {
   "schemaVersion": 2,
   "product": "Visual Studio Acode",
+  "architectureStack": {
+    "presentation": "Flutter/Dart",
+    "sharedCore": "KMP/shared Kotlin + SQLDelight",
+    "androidNative": "Kotlin",
+    "nativeCore": "C++ only when profiling and platform constraints justify it",
+    "futureIos": "Swift/Metal/AVFoundation deferred; Android-only MVP"
+  },
+  "securityGate": {
+    "status": "BLOCKED",
+    "lastAudit": "2026-09-13",
+    "resolved": [
+      "Android app backup disabled",
+      "Android cleartext traffic disabled",
+      "Workspace URI validation strengthened against encoded separators and traversal",
+      "Node dependency audit enabled in CI"
+    ],
+    "remainingBlockers": [
+      "Terminal requires OS/container isolation plus CPU and memory resource quotas",
+      "Privileged WebView bridge requires capability-scoped protocol and independently verified untrusted-preview boundary"
+    ]
+  },
   "sourcePolicy": {
     "uploadedArchives": ["Acode.zip", "Acode screenshot.zip", "ace-linters-2.3.4.zip", "suger-devtool-main.zip"],
     "governanceDocuments": ["Prompt.md", "text.txt"],
@@ -31,18 +52,18 @@
   },
   "features": {
     "editor": {"owner":"EditorPlatform","status":"IMPLEMENTED","sources":["Acode ecosystem","Acode-main.zip","vscode-main.zip","x.treesitter","jobians.lsp.client"],"evidence":{"build":"unknown","test":"partial","runtime":"unknown","security":"partial"}},
-    "workspace": {"owner":"WorkspaceCore","status":"IMPLEMENTED","sources":["Acode ecosystem","Acode-main.zip","vscode-main.zip"],"evidence":{"build":"unknown","test":"partial","runtime":"unknown","security":"partial"}},
+    "workspace": {"owner":"WorkspaceCore","status":"BLOCKED","sources":["Acode ecosystem","Acode-main.zip","vscode-main.zip"],"blocker":"Workspace URI authorization has been hardened but remains blocked until native Android instrumentation validates provider-specific canonical document boundaries.","evidence":{"build":"unknown","test":"partial","runtime":"unknown","security":"partial"}},
     "lsp": {"owner":"LanguagePlatform","status":"IMPLEMENTED","sources":["ace-linters-2.3.4.zip","Acode-main.zip","vscode-main.zip","jobians.lsp.client"],"evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
     "diagnostics": {"owner":"LanguagePlatform","status":"IMPLEMENTED","sources":["ace-linters-2.3.4.zip","vscode-main.zip"],"evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
     "formatting": {"owner":"BuildExecutionPlatform","status":"IMPLEMENTED","sources":["acode.plugin.prettier","acode.python.fmt","Acode-main.zip","vscode-main.zip"],"evidence":{"build":"unknown","test":"partial","runtime":"unknown","security":"partial"}},
-    "terminal": {"owner":"BuildExecutionPlatform","status":"BLOCKED","sources":["bajrangcoder.acodex","Acode-main.zip","termux-app-master.zip","code runner family"],"blocker":"Terminal execution is single-owner and argv-based with command allowlisting, path guards, bounded concurrency, timeout enforcement, and an output cap. It remains BLOCKED because there is no sufficiently strong OS/container isolation plus explicit CPU/memory resource quota enforcement to satisfy the project's terminal security baseline.","evidence":{"build":"pass","test":"pass-static-gates","runtime":"partial","security":"fail"}},
-    "execution": {"owner":"BuildExecutionPlatform","status":"IMPLEMENTED","sources":["acode.code.runner","Acode-main.zip","termux-app-master.zip","acode.runner.plugin","com.alpha10.quickjsrunner","com.arfoxcode.runner_python_node"],"evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
-    "webPreview": {"owner":"WebPlatform","status":"IMPLEMENTED","sources":["acode.plugin.acelivepreview","acode.plugin.localhostpreview","Acode-main.zip","vscode-main.zip","com.techsetuapps.instantweb.livepreviewer"],"evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
-    "apiStudio": {"owner":"WebPlatform","status":"IMPLEMENTED","sources":["acode.api.client","acode.plugin.restapi","Acode-main.zip"],"evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
-    "devTools": {"owner":"DeveloperTools","status":"IMPLEMENTED","sources":["suger-devtool-main.zip","vscode-main.zip","sebastianjnuwu.acode.eruda"],"evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
-    "git": {"owner":"SourceControl","status":"IMPLEMENTED","sources":["acode.plugin.version.control.gitpro","Acode-main.zip","vscode-main.zip","acode.plugin.github","dev.rugved.githubmanager"],"evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
-    "database": {"owner":"DatabaseStudio","status":"IMPLEMENTED","sources":["acode.db.visualizer","com.acode.sqliteviewer","com.alis219.sqlite.viewer","vscode-main.zip"],"evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
-    "ai": {"owner":"AIPlatform","status":"IMPLEMENTED","sources":["com.heyitsaadin.ai_agent","acode.plugin.acopilot","vscode-main.zip","Skill.zip","blackbox.ai","hallofcodes.rutex.coding_agent"],"evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
+    "terminal": {"owner":"BuildExecutionPlatform","status":"BLOCKED","sources":["bajrangcoder.acodex","Acode-main.zip","termux-app-master.zip","code runner family"],"blocker":"Terminal execution remains BLOCKED because there is no sufficiently strong OS/container isolation plus explicit CPU/memory resource quota enforcement to satisfy the terminal security baseline.","evidence":{"build":"pass","test":"pass-static-gates","runtime":"partial","security":"fail"}},
+    "execution": {"owner":"BuildExecutionPlatform","status":"BLOCKED","sources":["acode.code.runner","Acode-main.zip","termux-app-master.zip","acode.runner.plugin","com.alpha10.quickjsrunner","com.arfoxcode.runner_python_node"],"blocker":"Execution must inherit the terminal sandbox/security boundary before broader runtimes are enabled.","evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
+    "webPreview": {"owner":"WebPlatform","status":"BLOCKED","sources":["acode.plugin.acelivepreview","acode.plugin.localhostpreview","Acode-main.zip","vscode-main.zip","com.techsetuapps.instantweb.livepreviewer"],"blocker":"Preview itself is sandboxed, but the host WebView privileged JavaScript bridge remains broader than the final security boundary allows.","evidence":{"build":"unknown","test":"unknown","runtime":"partial","security":"fail"}},
+    "apiStudio": {"owner":"WebPlatform","status":"BLOCKED","sources":["acode.api.client","acode.plugin.restapi","Acode-main.zip"],"blocker":"Native HTTPS boundary is present, but outbound network target policy is not yet sufficiently restricted for a production-trust boundary.","evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
+    "devTools": {"owner":"DeveloperTools","status":"BLOCKED","sources":["suger-devtool-main.zip","vscode-main.zip","sebastianjnuwu.acode.eruda"],"blocker":"Depends on hardened preview/bridge isolation before production integration.","evidence":{"build":"unknown","test":"unknown","runtime":"unknown","security":"partial"}},
+    "git": {"owner":"SourceControl","status":"PLANNED","sources":["acode.plugin.version.control.gitpro","Acode-main.zip","vscode-main.zip","acode.plugin.github","dev.rugved.githubmanager"],"evidence":{"build":"n/a","test":"n/a","runtime":"n/a","security":"n/a"}},
+    "database": {"owner":"DatabaseStudio","status":"PLANNED","sources":["acode.db.visualizer","com.acode.sqliteviewer","com.alis219.sqlite.viewer","vscode-main.zip"],"evidence":{"build":"n/a","test":"n/a","runtime":"n/a","security":"n/a"}},
+    "ai": {"owner":"AIPlatform","status":"PLANNED","sources":["com.heyitsaadin.ai_agent","acode.plugin.acopilot","vscode-main.zip","Skill.zip","blackbox.ai","hallofcodes.rutex.coding_agent"],"blocker":"Permission gate and audit-log implementation must exist before AI mutation is enabled.","evidence":{"build":"n/a","test":"n/a","runtime":"n/a","security":"n/a"}},
     "skillRegistry": {"owner":"AIPlatform","status":"IMPLEMENTED","sources":["Skill.zip"],"evidence":{"build":"unknown","test":"partial","runtime":"unknown","security":"partial"}},
     "e2eTesting": {"owner":"QAPlatform","status":"INTEGRATED","sources":["Playwright","AndroidX Test"],"evidence":{"build":"partial","test":"pending-workflow","runtime":"pending-device","security":"partial"},"notes":"Playwright web E2E and Android instrumented E2E harnesses are integrated. VERIFIED is blocked until a successful CI/device run produces runtime evidence."},
     "remote": {"owner":"RemotePlatform","status":"PLANNED","sources":["Acode screenshot references","Acode-main.zip","vscode-main.zip"],"evidence":{"build":"n/a","test":"n/a","runtime":"n/a","security":"n/a"}},

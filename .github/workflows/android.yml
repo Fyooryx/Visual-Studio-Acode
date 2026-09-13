@@ -20,7 +20,9 @@ jobs:
         with:
           node-version: '22'
       - name: Install E2E dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install --audit=true --fund=false
+      - name: Audit Node dependencies
+        run: npm audit --audit-level=high
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
       - name: Run Playwright E2E
