@@ -4,31 +4,50 @@
 
 Keep the Acode-like mobile editing experience while replacing the plugin pile with a small set of internal platforms. A feature may be implemented from an audited plugin, rewritten, or adapted; the user-facing API stays stable.
 
+## Target implementation stack
+
+The product implementation language stack is fixed as an architectural constraint:
+
+- **Flutter / Dart** — presentation layer, mobile-first UI, animation and interaction.
+- **Kotlin Multiplatform / shared Kotlin** — shared domain/application logic and SQLDelight persistence abstractions.
+- **Android native Kotlin** — Android framework integration, filesystem/OS services, platform capabilities, and native execution boundaries.
+- **C++** — only for native core/hardware capabilities where profiling and platform constraints justify it, exposed through a narrow JNI boundary.
+- **Swift / iOS** — reserved for a future iOS target and not part of the Android MVP.
+
+Communication boundaries must be explicit. Prefer typed interfaces/protocols; Method Channels, JNI, JSON, or Protocol Buffers are selected per boundary based on correctness, performance, and maintainability rather than using every mechanism indiscriminately. KMP platform specialization uses `expect/actual` where shared code requires platform-specific implementations.
+
 ## Platform map
 
 ```text
 Visual Studio Acode
-├── App Shell
-│   ├── Navigation / panels
-│   ├── Tabs / split editor
-│   ├── Command palette
-│   └── Settings
-├── Workspace Core
-│   ├── File system abstraction
-│   ├── Project/workspace state
-│   ├── Search / replace
-│   └── Recent files / recovery
-├── Editor Platform
-│   ├── Ace-compatible editor adapter
-│   ├── syntax/highlighting
-│   ├── snippets / completion
-│   ├── breadcrumbs
-│   └── gestures / mobile input
+├── Flutter / Dart Presentation
+│   ├── App Shell / Navigation
+│   ├── Editor UI
+│   ├── Workspace / panels
+│   ├── Settings
+│   └── Accessibility / responsive layout
+├── KMP Shared Core (Kotlin)
+│   ├── Workspace domain
+│   ├── Editor/session state
+│   ├── Search/domain models
+│   ├── Language service contracts
+│   ├── Git/domain models
+│   ├── Database/domain models
+│   └── SQLDelight persistence
+├── Android Native Kotlin
+│   ├── Storage Access Framework
+│   ├── lifecycle/process integration
+│   ├── terminal/execution boundary
+│   ├── WebView security boundary
+│   ├── Android/Flutter toolchain integration
+│   └── JNI bridge
+├── Native C++ (conditional)
+│   └── performance-sensitive / hardware-specific core
 ├── Language Platform
 │   ├── LSP broker
 │   ├── language adapters
 │   ├── diagnostics
-│   └── semantic features
+│   └── formatting/lint providers
 ├── Build & Execution
 │   ├── formatter broker
 │   ├── linter broker
@@ -39,35 +58,13 @@ Visual Studio Acode
 │   ├── preview
 │   └── web runtime bridge
 ├── Developer Tools
-│   ├── console
-│   ├── debugger
-│   ├── Elements/DOM
-│   ├── styles
-│   ├── network
-│   ├── storage
-│   └── device emulation
 ├── Source Control
-│   ├── Git engine
-│   ├── diff / history
-│   └── GitHub adapter
 ├── Database Studio
-│   ├── SQLite
-│   ├── SQL editor
-│   └── visualizer
 ├── AI Platform
-│   ├── provider adapters
-│   ├── chat / edit / explain
-│   ├── agent loop
-│   └── workspace permission gate
 ├── Remote
-│   ├── SSH
-│   ├── SFTP
-│   └── remote workspace adapter
-└── Project Tooling
-    ├── Android
-    ├── Kotlin/Java/XML
-    ├── Flutter/Dart
-    └── templates/packages
+├── Project Tooling
+├── Plugin/Provider Layer
+└── Security Layer
 ```
 
 ## Integration contracts
@@ -101,9 +98,11 @@ This keeps resource policy in one owner and prevents each language adapter from 
 
 ### Terminal contract
 
-`TerminalBackend` currently defines a one-shot command execution boundary returning a structured `TerminalResult`. This matches the native terminal implementation available on Android today: validated argv, explicit private workspace, bounded concurrency, timeout enforcement, and output limits.
+`TerminalBackend` currently defines a one-shot command execution boundary returning a structured `TerminalResult`. The current Android implementation is intentionally restricted and remains security-gated. Interactive terminal sessions are deliberately not exposed until a sandboxed provider can satisfy the same isolation baseline.
 
-Interactive terminal sessions (`start/write/stop`) are deliberately not exposed by the current contract until a sandboxed session implementation can satisfy the same security baseline. Adding those methods prematurely would create a misleading abstraction and duplicate ownership.
+### Security boundary rule
+
+Security enforcement belongs at the native/provider boundary, not only in the Flutter UI. A Flutter action, KMP use-case, or WebView request must not bypass the security owner by calling platform implementation details directly.
 
 ## Selected source material
 
@@ -128,3 +127,4 @@ Known conflict examples from the uploaded runtime log include duplicate plugin g
 - Remote filesystem access is isolated from local workspace state.
 - Secrets/tokens are stored outside source files and never injected into project exports.
 - Web preview content is treated as untrusted input.
+- Native platform boundaries must validate caller input independently of UI validation.
